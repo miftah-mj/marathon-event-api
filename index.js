@@ -46,6 +46,10 @@ async function run() {
             .db("marathonEventDB")
             .collection("marathonEvents");
 
+        const marathonRegistrationCollection = client
+            .db("marathonEventDB")
+            .collection("marathonRegistrations");
+
         console.log("Connected to marathonEventDB");
 
         // GET all marathon events
@@ -67,6 +71,14 @@ async function run() {
         app.post("/marathonEvents", async (req, res) => {
             const newEvent = req.body;
             const result = await marathonEventCollection.insertOne(newEvent);
+            res.send(result);
+        });
+
+
+        // POST a new marathon registration
+        app.post("/marathonRegistrations", async (req, res) => {
+            const newRegistration = req.body;
+            const result = await marathonRegistrationCollection.insertOne(newRegistration);
             res.send(result);
         });
     } finally {
