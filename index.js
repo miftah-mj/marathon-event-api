@@ -42,53 +42,86 @@ async function run() {
             "Pinged your deployment. You successfully connected to MongoDB!"
         );
 
-        const marathonEventCollection = client
-            .db("marathonEventDB")
-            .collection("marathonEvents");
+        const marathonCollection = client
+            .db("marathonDB")
+            .collection("marathons");
 
-        const marathonRegistrationCollection = client
-            .db("marathonEventDB")
-            .collection("marathonRegistrations");
+        const registrationCollection = client
+            .db("marathonDB")
+            .collection("registrations");
 
-        console.log("Connected to marathonEventDB");
-
-        // GET all marathon events
-        app.get("/marathonEvents", async (req, res) => {
-            const cursor = marathonEventCollection.find();
+        // GET all marathons
+        app.get("/marathons", async (req, res) => {
+            const cursor = marathonCollection.find();
             const events = await cursor.toArray();
             res.send(events);
         });
 
-        // GET marathon event by id
-        app.get("/marathonEvents/:id", async (req, res) => {
+        // GET marathon by id
+        app.get("/marathons/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
-            const event = await marathonEventCollection.findOne(query);
+            const event = await marathonCollection.findOne(query);
             res.send(event);
         });
 
-        // POST a new marathon event
-        app.post("/marathonEvents", async (req, res) => {
+        // DELETE marathon by id
+        app.delete("/marathons/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await marathonCollection.deleteOne(query);
+            res.send(result);
+        });
+
+        // UPDATE marathon by id
+        app.patch("/marathons/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const updatedEvent = req.body;
+            const newValues = { $set: updatedEvent };
+            const result = await marathonCollection.updateOne(query, newValues);
+            res.send(result);
+        });
+
+        // POST a new marathon
+        app.post("/marathons", async (req, res) => {
             const newEvent = req.body;
-            const result = await marathonEventCollection.insertOne(newEvent);
+            const result = await marathonCollection.insertOne(newEvent);
             res.send(result);
         });
 
         // GET all marathon registrations
-        app.get("/marathonRegistrations", async (req, res) => {
-            const cursor = marathonRegistrationCollection.find();
+        app.get("/registrations", async (req, res) => {
+            const cursor = registrationCollection.find();
             const registrations = await cursor.toArray();
             res.send(registrations);
         });
 
         // POST a new marathon registration
-        app.post("/marathonRegistrations", async (req, res) => {
+        app.post("/registrations", async (req, res) => {
             const newRegistration = req.body;
-            const result = await marathonRegistrationCollection.insertOne(
+            const result = await registrationCollection.insertOne(
                 newRegistration
             );
-            res.send(result);
+            res.json(result);
         });
+
+        // // POST a new marathon registration
+        // app.post("/registrations", async (req, res) => {
+        //     const newRegistration = req.body;
+        //     const result = await registrationCollection.insertOne(
+        //         newRegistration
+        //     );
+
+        //     // Increment the total registration count in the corresponding marathon event
+        //     const eventId = newRegistration.eventId;
+        //     await marathonCollection.updateOne(
+        //         { _id: new ObjectId(eventId) },
+        //         { $inc: { totalRegistrationCount: 1 } }
+        //     );
+
+        //     res.send(result);
+        // });
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
