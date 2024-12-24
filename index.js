@@ -50,14 +50,13 @@ async function run() {
 
         // GET all marathon events
         app.get("/marathonEvents", async (req, res) => {
-            const marathonEvents = await marathonEventCollection
-                .find({})
-                .toArray();
-            res.send(marathonEvents);
+            const cursor = marathonEventCollection.find();
+            const events = await cursor.toArray();
+            res.send(events);
         });
     } finally {
         // Ensures that the client will close when you finish/error
-        await client.close();
+        // await client.close();
     }
 }
 run().catch(console.dir);
