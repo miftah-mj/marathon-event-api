@@ -74,11 +74,19 @@ async function run() {
             res.send(result);
         });
 
+        // GET all marathon registrations
+        app.get("/marathonRegistrations", async (req, res) => {
+            const cursor = marathonRegistrationCollection.find();
+            const registrations = await cursor.toArray();
+            res.send(registrations);
+        });
 
         // POST a new marathon registration
         app.post("/marathonRegistrations", async (req, res) => {
             const newRegistration = req.body;
-            const result = await marathonRegistrationCollection.insertOne(newRegistration);
+            const result = await marathonRegistrationCollection.insertOne(
+                newRegistration
+            );
             res.send(result);
         });
     } finally {
