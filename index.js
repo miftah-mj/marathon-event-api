@@ -3,7 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -53,6 +53,14 @@ async function run() {
             const cursor = marathonEventCollection.find();
             const events = await cursor.toArray();
             res.send(events);
+        });
+
+        // GET marathon event by id
+        app.get("/marathonEvents/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const event = await marathonEventCollection.findOne(query);
+            res.send(event);
         });
     } finally {
         // Ensures that the client will close when you finish/error
