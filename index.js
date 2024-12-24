@@ -62,6 +62,13 @@ async function run() {
             const event = await marathonEventCollection.findOne(query);
             res.send(event);
         });
+
+        // POST a new marathon event
+        app.post("/marathonEvents", async (req, res) => {
+            const newEvent = req.body;
+            const result = await marathonEventCollection.insertOne(newEvent);
+            res.send(result);
+        });
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
