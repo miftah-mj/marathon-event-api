@@ -103,25 +103,16 @@ async function run() {
             const result = await registrationCollection.insertOne(
                 newRegistration
             );
+
+            // Increment the total registration count
+            const marathonId = newRegistration.marathon_id;
+            await marathonCollection.updateOne(
+                { _id: new ObjectId(marathonId) },
+                { $inc: { totalRegistrationCount: 1 } }
+            );
+
             res.json(result);
         });
-
-        // // POST a new marathon registration
-        // app.post("/registrations", async (req, res) => {
-        //     const newRegistration = req.body;
-        //     const result = await registrationCollection.insertOne(
-        //         newRegistration
-        //     );
-
-        //     // Increment the total registration count in the corresponding marathon event
-        //     const eventId = newRegistration.eventId;
-        //     await marathonCollection.updateOne(
-        //         { _id: new ObjectId(eventId) },
-        //         { $inc: { totalRegistrationCount: 1 } }
-        //     );
-
-        //     res.send(result);
-        // });
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
