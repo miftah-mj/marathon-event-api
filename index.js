@@ -50,6 +50,10 @@ async function run() {
             .db("marathonDB")
             .collection("registrations");
 
+        const marathonTipsCollection = client
+            .db("marathonDB")
+            .collection("marathonTips");
+
         /**
          * API Endpoints
          */
@@ -171,6 +175,13 @@ async function run() {
             );
 
             res.json(result);
+        });
+
+        // GET all marathon tips
+        app.get("/marathonTips", async (req, res) => {
+            const cursor = marathonTipsCollection.find();
+            const tips = await cursor.toArray();
+            res.send(tips);
         });
     } finally {
         // Ensures that the client will close when you finish/error
