@@ -59,11 +59,26 @@ async function run() {
          * marathon apis
          *
          */
-        // GET all marathons
+        // GET all marathons with optional limit
         app.get("/marathons", async (req, res) => {
-            const cursor = marathonCollection.find();
+            const limit = parseInt(req.query.limit) || 0; // Default to no limit if not specified
+            const cursor = marathonCollection.find().limit(limit);
             const events = await cursor.toArray();
             res.send(events);
+        });
+
+        // Get six randomly selected upcoming marathons
+        app.get("/upcoming-marathons", async (req, res) => {
+            const currentDate = new Date();
+            const formattedDate = currentDate.toISOString().split("T")[0]; // Convert current date to "YYYY-MM-DD" format
+
+            const cursor = marathonCollection.aggregate([
+                { $match: { startRegistrationDate: { $gte: formattedDate } } },
+                { $sample: { size: 6 } },
+            ]);
+
+            const events = await cursor.toArray();
+            res.json(events);
         });
 
         // GET marathon by id
