@@ -63,10 +63,15 @@ async function run() {
          * marathon apis
          *
          */
-        // GET all marathons with optional limit
+        // GET all marathons with optional limit and sorting
         app.get("/marathons", async (req, res) => {
             const limit = parseInt(req.query.limit) || 0; // Default to no limit if not specified
-            const cursor = marathonCollection.find().limit(limit);
+            const sortOrder = req.query.sort === "asc" ? 1 : -1; // Default to descending order if not specified
+
+            const cursor = marathonCollection
+                .find()
+                .sort({ createdAt: sortOrder })
+                .limit(limit);
             const events = await cursor.toArray();
             res.send(events);
         });
