@@ -50,6 +50,15 @@ async function run() {
             .db("marathonDB")
             .collection("registrations");
 
+        /**
+         * API Endpoints
+         */
+
+        /**
+         *
+         * marathon apis
+         *
+         */
         // GET all marathons
         app.get("/marathons", async (req, res) => {
             const cursor = marathonCollection.find();
@@ -90,11 +99,30 @@ async function run() {
             res.send(result);
         });
 
+        /**
+         *
+         * registration apis
+         *
+         */
+
         // GET all marathon registrations
         app.get("/registrations", async (req, res) => {
             const cursor = registrationCollection.find();
             const registrations = await cursor.toArray();
             res.send(registrations);
+        });
+
+        // UPDATE registration by id
+        app.patch("/registrations/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const updatedRegistration = req.body;
+            const newValues = { $set: updatedRegistration };
+            const result = await registrationCollection.updateOne(
+                query,
+                newValues
+            );
+            res.send(result);
         });
 
         // POST a new marathon registration
