@@ -129,11 +129,22 @@ async function run() {
          *
          */
 
-        // GET all marathon registrations
         app.get("/registrations", async (req, res) => {
-            const cursor = registrationCollection.find();
-            const registrations = await cursor.toArray();
-            res.send(registrations);
+            const { title } = req.query;
+            const query = {};
+
+            if (title) {
+                query.marathonTitle = { $regex: title, $options: "i" }; // case-insensitive search
+            }
+
+            try {
+                const registrations = await registrationCollection
+                    .find(query)
+                    .toArray();
+                res.send(registrations);
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
         });
 
         // GET registration by id
