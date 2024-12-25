@@ -120,6 +120,14 @@ async function run() {
             res.send(registration);
         });
 
+        // DELETE registration by id
+        app.delete("/registrations/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await registrationCollection.deleteOne(query);
+            res.send(result);
+        });
+
         // UPDATE registration by id
         app.patch("/registrations/:id", async (req, res) => {
             const id = req.params.id;
