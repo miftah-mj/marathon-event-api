@@ -112,6 +112,14 @@ async function run() {
             res.send(registrations);
         });
 
+        // GET registration by id
+        app.get("/registrations/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const registration = await registrationCollection.findOne(query);
+            res.send(registration);
+        });
+
         // UPDATE registration by id
         app.patch("/registrations/:id", async (req, res) => {
             const id = req.params.id;
