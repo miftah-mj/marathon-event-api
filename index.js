@@ -60,6 +60,32 @@ async function run() {
 
         /**
          *
+         * Authentication APIs
+         *
+         */
+
+        // Creating token
+        app.post("/jwt", async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.JWT_SECRET_KEY, {
+                expiresIn: "20d",
+            });
+            res.cookie("token", token, cookieOptions).send({ success: true });
+        });
+
+        // clearing Token
+        app.post("/logout", async (req, res) => {
+            // const user = req.body;
+            // console.log("logging out", user);
+            res.clearCookie("token", { ...cookieOptions, maxAge: 0 }).send({
+                success: true,
+            });
+        });
+        
+
+
+        /**
+         *
          * marathon apis
          *
          */
