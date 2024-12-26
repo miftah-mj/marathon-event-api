@@ -21,6 +21,31 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+const logger = (req, res, next) => {
+    console.log("Logging route:", req.path, new Date().toISOString());
+    next();
+};
+
+const verifyToken = (req, res, next) => {
+    const token = req?.cookies?.token;
+    if (!token) {
+        return res.status(401).send({ message: "Access Denied, Unauthorized" });
+    }
+    jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ message: "Invalid token" });
+        }
+        req.user = decoded;
+    });
+    next();
+};
+
+const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+};
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.fh7he.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -65,7 +90,7 @@ async function run() {
          */
 
         // Creating token
-        app.post("/jwt", async (req, res) => {
+        app.post("/jwt", logger, async (req, res) => {
             const user = req.body;
             const token = jwt.sign(user, process.env.JWT_SECRET_KEY, {
                 expiresIn: "20d",
@@ -81,8 +106,6 @@ async function run() {
                 success: true,
             });
         });
-        
-
 
         /**
          *
@@ -108,7 +131,7 @@ async function run() {
             const formattedDate = currentDate.toISOString().split("T")[0]; // Convert current date to "YYYY-MM-DD" format
 
             const cursor = marathonCollection.aggregate([
-                { $match: { startRegistrationDate: { $gte: formattedDate } } },
+                { $match: { marathonStartDate: { $gte: formattedDate } } },
                 { $sample: { size: 6 } },
             ]);
 
@@ -173,12 +196,68 @@ async function run() {
             }
         });
 
+        // GET registration by email and search by title
+        // app.get("/registrations", verifyToken, async (req, res) => {
+        //     const email = req.query.email;
+        //     const query = { email: email };
+
+        //     // const { title } = req.query;
+        //     // const query = {};
+        //     // if (title) {
+        //     //     query.marathonTitle = { $regex: title, $options: "i" }; // case-insensitive search
+        //     // }
+
+        //     // console.log("cookies: ", req.cookies?.token);
+        //     //* check if the user is trying to access other user's data
+        //     if (req.user.email !== req.query.email) {
+        //         console.log("user email: ", req.user.email);
+        //         console.log("query email: ", req.query.email);
+        //         return res.status(403).send({ message: "Forbidden Acceess" });
+        //     }
+
+        //     const result = await registrationCollection.find(query).toArray();
+
+        //     // aggregate data from marathons collection
+        //     for (const application of result) {
+        //         const queryResult = {
+        //             _id: new ObjectId(application.marathon_id),
+        //         };
+        //         const marathon = await marathonCollection.findOne(queryResult);
+        //         if (marathon) {
+        //             application.marathonTitle = marathon.marathonTitle;
+        //             application.startRegistrationDate =
+        //                 marathon.startRegistrationDate;
+
+        //             application.endRegistrationDate =
+        //                 marathon.endRegistrationDate;
+
+        //             application.marathonStartDate = marathon.marathonStartDate;
+        //             application.location = marathon.location;
+        //             application.runningDistance = marathon.runningDistance;
+        //             application.marathonImage = marathon.marathonImage;
+        //             application.createdAt = marathon.createdAt;
+
+        //             application.totalRegistrationCount =
+        //                 marathon.totalRegistrationCount;
+        //         }
+        //     }
+        //     res.send(result);
+        // });
+
         // GET registration by id
         app.get("/registrations/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const registration = await registrationCollection.findOne(query);
             res.send(registration);
+        });
+
+        // get registrations bt marathon id
+        app.get("/registrations/marathons/:marathon_id", async (req, res) => {
+            const marathonId = req.params.marathon_id;
+            const query = { marathon_id: marathonId };
+            const result = await registrationCollection.find(query).toArray();
+            res.send(result);
         });
 
         // DELETE registration by id
