@@ -114,12 +114,19 @@ async function run() {
          */
         // GET all marathons with optional limit and sorting
         app.get("/marathons", async (req, res) => {
+            const email = req.query.email;
+            let query = {};
+
+            if (email) {
+                query = { email: email };
+            }
+
             const limit = parseInt(req.query.limit) || 0; // Default to no limit if not specified
             const sortOrder = req.query.sort === "asc" ? 1 : -1; // Default to descending order if not specified
 
             const cursor = marathonCollection
-                .find()
-                .sort({ createdAt: sortOrder })
+                .find(query)
+                .sort({ startRegistrationDate: sortOrder })
                 .limit(limit);
             const events = await cursor.toArray();
             res.send(events);
@@ -177,10 +184,14 @@ async function run() {
          * registration apis
          *
          */
-
+        // GET all registrations with optional query parameters
         app.get("/registrations", async (req, res) => {
-            const { title } = req.query;
+            const { title, email } = req.query;
             const query = {};
+
+            if (email) {
+                query.email = email;
+            }
 
             if (title) {
                 query.marathonTitle = { $regex: title, $options: "i" }; // case-insensitive search
@@ -192,59 +203,10 @@ async function run() {
                     .toArray();
                 res.send(registrations);
             } catch (error) {
-                res.status(500).send({ message: error.message });
+                res.status(500).json({ message: error.message });
             }
         });
 
-        // GET registration by email and search by title
-        // app.get("/registrations", verifyToken, async (req, res) => {
-        //     const email = req.query.email;
-        //     const query = { email: email };
-
-        //     // const { title } = req.query;
-        //     // const query = {};
-        //     // if (title) {
-        //     //     query.marathonTitle = { $regex: title, $options: "i" }; // case-insensitive search
-        //     // }
-
-        //     // console.log("cookies: ", req.cookies?.token);
-        //     //* check if the user is trying to access other user's data
-        //     if (req.user.email !== req.query.email) {
-        //         console.log("user email: ", req.user.email);
-        //         console.log("query email: ", req.query.email);
-        //         return res.status(403).send({ message: "Forbidden Acceess" });
-        //     }
-
-        //     const result = await registrationCollection.find(query).toArray();
-
-        //     // aggregate data from marathons collection
-        //     for (const application of result) {
-        //         const queryResult = {
-        //             _id: new ObjectId(application.marathon_id),
-        //         };
-        //         const marathon = await marathonCollection.findOne(queryResult);
-        //         if (marathon) {
-        //             application.marathonTitle = marathon.marathonTitle;
-        //             application.startRegistrationDate =
-        //                 marathon.startRegistrationDate;
-
-        //             application.endRegistrationDate =
-        //                 marathon.endRegistrationDate;
-
-        //             application.marathonStartDate = marathon.marathonStartDate;
-        //             application.location = marathon.location;
-        //             application.runningDistance = marathon.runningDistance;
-        //             application.marathonImage = marathon.marathonImage;
-        //             application.createdAt = marathon.createdAt;
-
-        //             application.totalRegistrationCount =
-        //                 marathon.totalRegistrationCount;
-        //         }
-        //     }
-        //     res.send(result);
-        // });
-
-        // GET registration by id
         app.get("/registrations/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
