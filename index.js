@@ -13,7 +13,7 @@ app.use(
         origin: [
             "http://localhost:5173",
             "https://runtrack-marathon-event.web.app/",
-            "https://runtrack-marathon-event.firebaseapp.com",
+            "https://runtrack-marathon-event.firebaseapp.com/",
         ],
         credentials: true,
     })
@@ -93,7 +93,7 @@ async function run() {
         app.post("/jwt", logger, async (req, res) => {
             const user = req.body;
             const token = jwt.sign(user, process.env.JWT_SECRET_KEY, {
-                expiresIn: "20d",
+                expiresIn: "100d",
             });
             res.cookie("token", token, cookieOptions).send({ success: true });
         });
