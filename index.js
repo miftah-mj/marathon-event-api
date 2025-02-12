@@ -12,8 +12,8 @@ app.use(
     cors({
         origin: [
             "http://localhost:5173",
-            "https://marathon-event.web.app",
-            "https://marathon-event.firebaseapp.com",
+            "https://runtrack-marathon-event.web.app/",
+            "https://runtrack-marathon-event.firebaseapp.com",
         ],
         credentials: true,
     })
